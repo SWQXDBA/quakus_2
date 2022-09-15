@@ -408,7 +408,20 @@ class Filters {
     }
 }
 ```
+类似地，响应筛选器可以用@ServerResponseFilter注释:
 
+```java
+class Filters {
+    @ServerResponseFilter
+    public void getFilter(ContainerResponseContext responseContext) {
+        Object entity = responseContext.getEntity();
+        if(entity instanceof String) {
+            // make it shout
+            responseContext.setEntity(((String)entity).toUpperCase());
+        }
+    }
+}
+```
 ### 运行的线程:  
 请求过滤器通常与处理请求的方法在同一个线程上执行。这意味着如果服务于请求的方法用@Blocking，那么过滤器也将在工作线程上运行。如果该方法用@NonBlocking(或者根本没有注释)，那么过滤器也将在相同的事件循环线程上运行。
 
