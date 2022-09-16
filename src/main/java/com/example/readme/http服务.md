@@ -369,59 +369,7 @@ RESTEasy Reactive提供了@Cache和@NoCache便于处理HTTP缓存语义的注释
 
 正在…@Cache构建一个复杂的Cache-Control标题，@NoCache是一种简化的表示法，表示您不想缓存任何东西；即Cache-Control: nocache.
 
-# 请求或响应过滤器
 
-通过注释
-您可以声明在请求处理的以下阶段调用的函数:
-
-识别端点方法之前:路由前请求过滤器
-
-在路由之后，但在端点方法被调用之前:普通请求过滤器
-
-在端点方法被调用后:响应过滤器
-
-这些过滤器允许您做各种事情，例如检查请求URI、HTTP方法、影响路由、查看或更改请求头、中止请求或修改响应。
-
-
-
-请求筛选器可以用@ServerRequestFilter注释:  
-```java
-import java.util.Optional;
-
-class Filters {
-
-    @ServerRequestFilter(preMatching = true)
-    public void preMatchingFilter(ContainerRequestContext requestContext) {
-        // make sure we don't lose cheese lovers
-        if("yes".equals(requestContext.getHeaderString("Cheese"))) {
-            requestContext.setRequestUri(URI.create("/cheese"));
-        }
-    }
-
-    @ServerRequestFilter
-    public Optional<RestResponse<Void>> getFilter(ContainerRequestContext ctx) {
-        // only allow GET methods for now
-        if(ctx.getMethod().equals(HttpMethod.GET)) {
-            return Optional.of(RestResponse.status(Response.Status.METHOD_NOT_ALLOWED));
-        }
-        return Optional.empty();
-    }
-}
-```
-类似地，响应筛选器可以用@ServerResponseFilter注释:
-
-```java
-class Filters {
-    @ServerResponseFilter
-    public void getFilter(ContainerResponseContext responseContext) {
-        Object entity = responseContext.getEntity();
-        if(entity instanceof String) {
-            // make it shout
-            responseContext.setEntity(((String)entity).toUpperCase());
-        }
-    }
-}
-```
 ### 运行的线程:  
 请求过滤器通常与处理请求的方法在同一个线程上执行。这意味着如果服务于请求的方法用@Blocking，那么过滤器也将在工作线程上运行。如果该方法用@NonBlocking(或者根本没有注释)，那么过滤器也将在相同的事件循环线程上运行。
 
